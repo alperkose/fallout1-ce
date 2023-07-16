@@ -109,3 +109,45 @@ jobs:
           name: fallout-ce-linux-${{ matrix.arch }}
           path:  build/fallout-ce
           retention-days: 7
+  macos:
+    name: macOS
+
+    runs-on: macos-11
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v3
+
+      - name: Cache cmake build
+        uses: actions/cache@v3
+        with:
+          path: build
+          key: macos-cmake-v4
+
+      - name: Configure
+        run: |
+          cmake \
+            -B build \
+            -G Xcode \
+            -D CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY='' \
+            # EOL
+
+      - name: Build
+        run: |
+          cmake \
+            --build build \
+            --config RelWithDebInfo \
+            -j $(sysctl -n hw.physicalcpu) \
+            # EOL
+
+      - name: Pack
+        run: |
+          cd build
+          cpack -C RelWithDebInfo
+
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: fallout-ce-macos.dmg
+          path:  build/Fallout Community Edition.dmg
+          retention-days: 7
